@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portfolio | Kate Barnes, Ph.D.</title>
+  <link rel="icon" type="image/png" href="assets/img/kb-logo.png">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* --- Flagship project block --- */
+    .project {
+      border-left: 3px solid #500000;
+      padding: 4px 0 4px 24px;
+      margin-bottom: 48px;
+    }
+    .project-eyebrow {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #500000;
+      margin-bottom: 6px;
+    }
+    .project h3 {
+      font-family: 'Lora', serif;
+      font-weight: 700;
+      font-size: 1.375rem;
+      color: #202020;
+      margin-bottom: 12px;
+    }
+    .project-narrative {
+      font-size: 0.95rem;
+      color: #444;
+      line-height: 1.6;
+      max-width: 60ch;
+      margin-bottom: 14px;
+    }
+    .project-narrative a {
+      color: #500000;
+      font-weight: 600;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    .project-narrative a:hover { color: #732f2f; }
+    .project-coda {
+      font-size: 0.85rem;
+      color: #999;
+      font-style: italic;
+      max-width: 60ch;
+    }
+
+    /* Full-width story + horizontal scroll-through of supporting artifacts */
+    .story-narrative {
+      font-size: 1.05rem;
+      color: #444;
+      line-height: 1.7;
+      max-width: none;
+      margin-bottom: 24px;
+    }
+    .story-narrative a {
+      color: #500000;
+      font-weight: 600;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    .story-narrative a:hover { color: #732f2f; }
+
+    .artifact-carousel { position: relative; max-width: 86%; margin: 0 auto; }
+    .artifact-scroll {
+      display: flex;
+      align-items: stretch;
+      gap: 16px;
+      padding: 12px 6px 22px;
+      overflow-x: auto;
+      scroll-behavior: smooth;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .artifact-scroll::-webkit-scrollbar { display: none; }
+    .artifact-nav {
+      position: absolute;
+      top: 75px;
+      transform: translateY(-50%);
+      background: rgba(80,0,0,0.78);
+      color: #fff;
+      border: none;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      font-size: 1.1rem;
+      cursor: pointer;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s, opacity 0.15s;
+    }
+    .artifact-nav:hover { background: #500000; }
+    .artifact-nav:disabled { opacity: 0.25; cursor: default; }
+    .artifact-prev { left: -52px; }
+    .artifact-next { right: -52px; }
+    .artifact-card {
+      flex: 0 0 42%;
+      scroll-snap-align: start;
+      border: 1px solid #e8e8e8;
+      border-radius: 4px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      text-decoration: none;
+      color: inherit;
+      cursor: pointer;
+      transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+    }
+    .artifact-card:hover {
+      border-color: #500000;
+      box-shadow: 0 6px 18px rgba(80,0,0,0.14);
+      transform: translateY(-3px);
+    }
+    .artifact-card:hover .artifact-title { color: #500000; }
+    /* Thumbnail sits directly below the body (snug, no auto gap) */
+    .artifact-thumb { order: 2; }
+    .artifact-body { order: 1; }
+    /* News list card keeps its natural order (head above list) */
+    .list-card .artifact-body { order: 0; }
+    .list-card .artifact-list-wrap { order: 1; }
+    /* News card stretches to the row height; the list scrolls inside (height tracks the other cards at any width) */
+    .list-card { position: relative; cursor: pointer; }
+    .artifact-list-wrap { flex: 1 1 0; min-height: 0; position: relative; }
+    .artifact-thumb {
+      position: relative;
+      overflow: hidden;
+      aspect-ratio: 16 / 10;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #aaa;
+      font-size: 0.75rem;
+      text-align: center;
+      padding: 0;
+    }
+    /* Uniform height: image keeps its own ratio (landscape fills width, square sits narrower) */
+    .artifact-thumb .thumb-img {
+      position: static;
+      height: 100%;
+      width: auto;
+      max-width: 100%;
+      object-fit: contain;
+      display: block;
+    }
+    /* Square thumbnail cards are narrower so the square image fills the card width edge to edge */
+    .square-card { flex: 0 0 24%; }
+    .square-card .artifact-thumb { aspect-ratio: 1 / 1; }
+    .square-card .thumb-img { width: 100%; height: auto; }
+    /* News card is narrower too, height still capped so the list scrolls inside */
+    .list-card { flex: 0 0 32%; }
+    /* WWK composite cover: PDF page (portrait) + testimony screengrab in one tile */
+    .wwk-collage { position: relative; overflow: hidden; padding: 0; aspect-ratio: 16 / 10; }
+    .wwk-collage .collage-pdf {
+      position: absolute;
+      left: 18px; top: 50%;
+      transform: translateY(-50%) rotate(-4deg);
+      height: 76%; width: auto;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.26);
+      border: 1px solid #fff;
+      z-index: 2;
+    }
+    .wwk-collage .collage-grab {
+      position: absolute;
+      right: 10px; bottom: 16px;
+      width: 44%; aspect-ratio: 16 / 9;
+      transform: rotate(3deg);
+      border: 3px solid #fff;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.22);
+      object-fit: cover;
+      z-index: 1;
+    }
+    /* Dissertation: two photos stacked as polaroids */
+    .diss-collage { position: relative; overflow: hidden; padding: 0; background: #e8e8e8; }
+    .diss-collage img {
+      position: absolute;
+      top: 50%;
+      width: 56%; aspect-ratio: 1 / 1;
+      object-fit: cover;
+      border: 3px solid #fff;
+      box-shadow: 0 3px 12px rgba(0,0,0,0.24);
+    }
+    .diss-collage .diss-solo {
+      left: 7%;
+      transform: translateY(-50%) rotate(-4deg);
+      object-position: center 25%;
+      z-index: 1;
+    }
+    .diss-collage .diss-parents {
+      right: 7%;
+      transform: translateY(-50%) rotate(4deg);
+      object-position: center 22%;
+      z-index: 2;
+    }
+    /* Merit pay infographic: wide table framed on a square tile */
+    .merit-infographic { position: relative; overflow: hidden; background: #e8e8e8; padding: 0; }
+    .merit-infographic img {
+      position: absolute;
+      left: 50%; top: 50%;
+      width: 94%;
+      transform: translate(-50%, -50%) rotate(-2deg);
+      border: 4px solid #fff;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.24);
+    }
+    /* This & That: scrollable doodle card */
+    .doodle-strip {
+      padding: 0;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      justify-content: flex-start;
+    }
+    .doodle-strip img {
+      flex: 0 0 100%;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      scroll-snap-align: start;
+    }
+    /* Data tool: live iframe thumbnail, screen-like landscape ratio */
+    .calc-thumb { position: relative; overflow: hidden; background: #fff; padding: 0; aspect-ratio: 16 / 10; }
+    .calc-thumb iframe {
+      position: absolute;
+      top: 0; left: 0;
+      width: 250%; height: 250%;
+      transform: scale(0.4);
+      transform-origin: top left;
+      border: 0;
+      pointer-events: none;
+    }
+    .artifact-body { padding: 7px 16px 5px; min-height: 96px; border-bottom: 1px solid #eee; }
+    .artifact-kind {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #500000;
+      margin-bottom: 4px;
+    }
+    .artifact-card.pending .artifact-kind { color: #aaa; }
+    .artifact-title {
+      font-family: 'Lora', serif;
+      font-weight: 500;
+      font-size: 0.95rem;
+      color: #202020;
+    }
+    .artifact-card.pending { opacity: 0.7; border-style: dashed; }
+    .artifact-desc {
+      margin-top: 6px;
+      font-size: 0.82rem;
+      line-height: 1.45;
+      color: #555;
+    }
+    .artifact-sublink {
+      display: block;
+      margin-top: 8px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #500000;
+    }
+    a.artifact-sublink:hover { text-decoration: underline; }
+    .artifact-sublink.pending {
+      color: #aaa;
+      font-weight: 400;
+      font-style: italic;
+    }
+
+    /* Card rendered as a button (opens a pop-out) */
+    button.artifact-card {
+      font: inherit;
+      text-align: left;
+      background: none;
+      cursor: pointer;
+      padding: 0;
+    }
+
+    /* List-card: inner scrollable list of items */
+    .artifact-card.list-card .list-head {
+      padding: 14px 16px 8px;
+      border-bottom: 1px solid #eee;
+    }
+    .artifact-list {
+      position: absolute;
+      inset: 0;
+      overflow-y: auto;
+      padding: 4px 16px 12px;
+    }
+    .artifact-list-item {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      padding: 9px 0;
+      border-bottom: 1px solid #f0f0f0;
+      font-size: 0.82rem;
+      color: #444;
+      line-height: 1.35;
+    }
+    .artifact-list-item:last-child { border-bottom: none; }
+    .li-icon {
+      flex: 0 0 auto;
+      width: 18px; height: 18px;
+      color: #500000;
+      margin-top: 2px;
+    }
+    .li-icon svg { width: 100%; height: 100%; display: block; }
+    .li-text { min-width: 0; }
+    .artifact-list-item .src {
+      display: block;
+      font-size: 0.66rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #999;
+      margin-bottom: 2px;
+    }
+
+    /* Pop-out modal */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.28);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 24px;
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal-card {
+      background: #fff;
+      max-width: 560px;
+      width: 100%;
+      max-height: 85vh;
+      overflow-y: auto;
+      border-radius: 6px;
+      padding: 28px 30px;
+      position: relative;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.18);
+    }
+    .modal-close {
+      position: absolute;
+      top: 10px;
+      right: 16px;
+      background: none;
+      border: none;
+      font-size: 1.6rem;
+      line-height: 1;
+      cursor: pointer;
+      color: #999;
+    }
+    .modal-close:hover { color: #500000; }
+    .modal-card h3 {
+      font-family: 'Lora', serif;
+      font-weight: 700;
+      color: #500000;
+      margin-bottom: 12px;
+    }
+    .modal-card p { color: #444; line-height: 1.6; font-size: 0.95rem; }
+    .modal-screengrab {
+      display: block;
+      width: 100%;
+      height: 240px;
+      object-fit: cover;
+      border-radius: 3px;
+      margin: 18px 0 6px;
+    }
+    .modal-figure {
+      display: block;
+      width: 100%;
+      max-width: 460px;
+      height: auto;
+      max-height: 60vh;
+      object-fit: contain;
+      margin: 18px auto 6px;
+      border-radius: 3px;
+    }
+    .modal-caption {
+      font-size: 0.78rem !important;
+      color: #888 !important;
+      margin: 0 0 6px !important;
+      font-style: italic;
+    }
+    .modal-photo-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin: 18px 0 6px;
+    }
+    .modal-photo figure { margin: 0; }
+    .modal-photo img {
+      display: block;
+      width: 100%;
+      height: 220px;
+      object-fit: cover;
+      border-radius: 3px;
+    }
+    .modal-photo figcaption {
+      font-size: 0.78rem;
+      color: #888;
+      margin-top: 6px;
+      font-style: italic;
+    }
+    @media (max-width: 560px) {
+      .modal-photo-row { grid-template-columns: 1fr; }
+    }
+    .link-group { margin-bottom: 14px; }
+    .link-group-label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #999;
+      margin-bottom: 6px;
+    }
+    .link-group ul { list-style: none; padding: 0; margin: 0; }
+    .link-group li { margin-bottom: 4px; }
+    .link-group a {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #500000;
+    }
+    .link-group a:hover { text-decoration: underline; }
+    .link-pending {
+      font-size: 0.9rem;
+      color: #aaa;
+      font-style: italic;
+    }
+
+    /* Research list inside the What We Know pop-out */
+    .modal-list-label {
+      font-family: 'Lora', serif;
+      font-weight: 700;
+      font-size: 1rem !important;
+      color: #500000 !important;
+      margin: 22px 0 4px !important;
+      padding-top: 16px;
+      border-top: 1px solid #eee;
+    }
+    .modal-research-list .artifact-list-item:last-child { border-bottom: none; }
+
+    /* Clickable card (whole card links out) */
+    a.card-clickable {
+      text-decoration: none;
+      color: inherit;
+    }
+    a.card-clickable:hover { border-color: #500000; }
+    a.card-clickable .card-go {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #500000;
+      margin-bottom: 0;
+    }
+
+    /* Thumbnail placeholder for the live tools */
+    .thumb-placeholder {
+      width: 100%;
+      height: 160px;
+      background: repeating-linear-gradient(45deg, #f3f3f3, #f3f3f3 10px, #ececec 10px, #ececec 20px);
+      border-radius: 2px;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #999;
+      font-size: 0.8rem;
+      text-align: center;
+      padding: 0 12px;
+    }
+
+    .subsection-title {
+      font-family: 'Lora', serif;
+      font-weight: 700;
+      font-size: 1.2rem;
+      color: #202020;
+      margin: 40px 0 6px;
+    }
+
+    /* Click-through carousel inside the Illustrated Abstracts pop-out */
+    .abstract-carousel {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 18px 0 6px;
+    }
+    .abstract-stage {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .abstract-slide { display: none; }
+    .abstract-slide.active { display: block; }
+    .abstract-slide img {
+      display: block;
+      max-width: 100%;
+      max-height: 60vh;
+      margin: 0 auto;
+      border-radius: 3px;
+    }
+    .abstract-nav {
+      flex: 0 0 auto;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: none;
+      background: #f0ebeb;
+      color: #500000;
+      font-size: 1.1rem;
+      cursor: pointer;
+      line-height: 1;
+    }
+    .abstract-nav:hover { background: #500000; color: #fff; }
+    .abstract-nav:disabled { opacity: 0.35; cursor: default; background: #f0ebeb; color: #500000; }
+    .abstract-counter {
+      text-align: center;
+      font-size: 0.78rem !important;
+      color: #888 !important;
+      margin: 0 !important;
+    }
+  </style>
+</head>
+<body>
+
+  <nav id="site-nav">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo" aria-label="Kate Barnes home">
+        <img src="assets/img/kb-logo.png" alt="KB">
+      </a>
+      <button class="nav-toggle" id="nav-toggle" aria-label="Toggle navigation" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav-links" id="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="research-media.html">Research &amp; Media</a></li>
+        <li><a href="portfolio.html">Portfolio</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main>
+    <div class="container">
+
+      <div class="page-header">
+        <h1>Portfolio</h1>
+      </div>
+
+      <!-- 1. FOUR-DAY SCHOOL WEEK (leads, full-width story + artifact scroll) -->
+      <section class="portfolio-section">
+        <h2>Four-Day School Week</h2>
+        <p class="story-narrative">
+          My research evaluates the evidence on four-day school weeks in Arkansas, providing insights that have directly informed policy and public discourse.
+        </p>
+
+        <div class="artifact-carousel">
+        <button class="artifact-nav artifact-prev" aria-label="Scroll left">&#8592;</button>
+        <div class="artifact-scroll" aria-label="Four-day school week materials">
+
+          <!-- 1. What We Know brief (opens pop-out explainer) -->
+          <button class="artifact-card wwk-card" data-modal="wwk-modal">
+            <div class="artifact-thumb">
+              <img class="thumb-img" src="assets/img/thumbnails/wwk4dsw.png" alt="What We Know brief">
+            </div>
+            <div class="artifact-body">
+              <p class="artifact-kind">Policy Brief</p>
+              <p class="artifact-title">What We Know - Four-Day School Week in Arkansas</p>            </div>
+          </button>
+
+          <!-- 2. In the news (inner scrollable list) -->
+          <div class="artifact-card list-card" data-modal="news-modal" role="button" tabindex="0">
+            <div class="artifact-body list-head">
+              <p class="artifact-kind">In the News</p>
+              <p class="artifact-title">Press &amp; radio coverage</p>
+            </div>
+            <div class="artifact-list-wrap"><div class="artifact-list">
+              <div class="artifact-list-item">
+                <span class="li-icon" title="Newspaper"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h13a1 1 0 0 1 1 1v13a2 2 0 0 0 2 2H5a2 2 0 0 1-2-2V5a1 1 0 0 1 1-1z"/><path d="M18 8h1a1 1 0 0 1 1 1v9"/><path d="M7 8h7M7 12h7M7 16h4"/></svg></span>
+                <div class="li-text"><span class="src">AR Dem-Gazette</span><a href="https://www.arkansasonline.com/news/2025/may/smaller-districts-see-some-benefit-of-shorter-weeks/" target="_blank" rel="noopener">Smaller districts see some benefit of shorter weeks &rarr;</a></div>
+              </div>
+              <div class="artifact-list-item">
+                <span class="li-icon" title="Radio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11h16a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-8a1 1 0 0 1 1-1z"/><path d="m7 11 11-6"/><circle cx="8" cy="16" r="2"/><path d="M14 15h4M14 18h2"/></svg></span>
+                <div class="li-text"><span class="src">KUAF Radio</span><a href="https://www.kuaf.com/education/2025-04/bill-arkansas-legislature-threatens-future-four-day-school-weeks" target="_blank" rel="noopener">A bill in the Arkansas Legislature threatens the future of four-day school weeks &rarr;</a></div>
+              </div>
+              <div class="artifact-list-item">
+                <span class="li-icon" title="Radio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11h16a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-8a1 1 0 0 1 1-1z"/><path d="m7 11 11-6"/><circle cx="8" cy="16" r="2"/><path d="M14 15h4M14 18h2"/></svg></span>
+                <div class="li-text"><span class="src">KUAF Radio</span><a href="https://www.kuaf.com/education/2023-11/lincoln-consolidated-school-district-trims-school-week-benefit-mental-health" target="_blank" rel="noopener">Lincoln Consolidated School District trims school week to benefit mental health &rarr;</a></div>
+              </div>
+              <div class="artifact-list-item">
+                <span class="li-icon" title="Radio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11h16a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-8a1 1 0 0 1 1-1z"/><path d="m7 11 11-6"/><circle cx="8" cy="16" r="2"/><path d="M14 15h4M14 18h2"/></svg></span>
+                <div class="li-text"><span class="src">KUAF Radio</span><a href="https://www.kuaf.com/education/2023-03/why-schools-consider-four-day-weeks" target="_blank" rel="noopener">Why Schools Consider Four-Day Weeks &rarr;</a></div>
+              </div>
+            </div>
+            </div>
+          </div>
+
+          <!-- 3. Doodle (illustrated abstract) opens pop-out with the research behind it -->
+          <button class="artifact-card square-card" data-modal="illustration-modal">
+            <div class="artifact-thumb"><img class="thumb-img" src="assets/img/thumbnails/4dsw illustrated .png" alt="Illustrated abstract: Why Are Schools Changing Calendars?"></div>
+            <div class="artifact-body">
+              <p class="artifact-kind">This &amp; That</p>
+              <p class="artifact-title">Illustrated Abstract</p>            </div>
+          </button>
+
+          <!-- 4. Dissertation (opens pop-out with photos + link) -->
+          <button class="artifact-card square-card" data-modal="dissertation-modal">
+            <div class="artifact-thumb">
+              <img class="thumb-img" src="assets/img/thumbnails/dissertation.png" alt="Kate Barnes at her doctoral graduation, University of Arkansas">
+            </div>
+            <div class="artifact-body">
+              <p class="artifact-kind">Research</p>
+              <p class="artifact-title">KB 4DSW Research in AR</p>            </div>
+          </button>
+
+        </div>
+        <button class="artifact-nav artifact-next" aria-label="Scroll right">&#8594;</button>
+        </div>
+      </section>
+
+      <!-- 2. ARKANSAS TEACHER MERIT PAY (full-width story + artifact scroll) -->
+      <section class="portfolio-section">
+        <h2>Arkansas Teacher Merit Pay</h2>
+        <p class="story-narrative">
+          When Arkansas introduced teacher merit pay, I developed and distributed resources to help educators and district leaders navigate the new bonus structure.
+        </p>
+
+        <div class="artifact-carousel">
+        <button class="artifact-nav artifact-prev" aria-label="Scroll left">&#8592;</button>
+        <div class="artifact-scroll" aria-label="Arkansas teacher merit pay materials">
+
+          <!-- 1. Infographic / OEP blog (opens pop-out) -->
+          <button class="artifact-card" data-modal="blog-modal">
+            <div class="artifact-thumb"><img class="thumb-img" src="assets/img/thumbnails/blog doodle.png" alt="OEP blog post explaining Arkansas Teacher Merit Pay"></div>
+            <div class="artifact-body">
+              <p class="artifact-kind">Blog Post</p>
+              <p class="artifact-title">Explaining AR Merit Teacher Pay</p>            </div>
+          </button>
+
+          <!-- 2. Merit Pay Calculator (opens dedicated on-site page) -->
+          <a class="artifact-card" href="merit-pay-calculator.html">
+            <div class="artifact-thumb">
+              <img class="thumb-img" src="assets/img/thumbnails/merit pay.png" alt="Merit Pay Calculator tool">
+            </div>
+            <div class="artifact-body">
+              <p class="artifact-kind">Data Tool</p>
+              <p class="artifact-title">AR Teacher Merit Pay Calculator</p>            </div>
+          </a>
+
+        </div>
+        <button class="artifact-nav artifact-next" aria-label="Scroll right">&#8594;</button>
+        </div>
+      </section>
+
+      <!-- 4. THIS & THAT (standalone projects + creative work, mirrors the strips above) -->
+      <section class="portfolio-section">
+        <h2>This &amp; That</h2>
+        <p class="story-narrative">
+          A collection of standalone projects and creative work.
+        </p>
+
+        <div class="artifact-carousel">
+        <button class="artifact-nav artifact-prev" aria-label="Scroll left">&#8592;</button>
+        <div class="artifact-scroll" aria-label="Other projects and illustrated abstracts">
+
+          <!-- Course Audit (opens dedicated on-site page) -->
+          <a class="artifact-card audit-card" href="course-audit.html">
+            <div class="artifact-thumb">
+              <img class="thumb-img" src="assets/img/thumbnails/course audit.png" alt="Graduate Course Audit tool">
+            </div>
+            <div class="artifact-body">
+              <p class="artifact-kind">Data Tool</p>
+              <p class="artifact-title">Graduate Course Audit</p>            </div>
+          </a>
+
+          <!-- Illustrated abstracts: opens a click-through carousel -->
+          <button class="artifact-card" data-modal="abstracts-modal">
+            <div class="artifact-thumb">
+              <img class="thumb-img" src="assets/img/thumbnails/illustrated abstracts.png" alt="Illustrated abstracts">
+            </div>
+            <div class="artifact-body">
+              <p class="artifact-kind">This &amp; That</p>
+              <p class="artifact-title">Illustrated Abstracts</p>            </div>
+          </button>
+
+        </div>
+        <button class="artifact-nav artifact-next" aria-label="Scroll right">&#8594;</button>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Pop-out: What We Know -->
+  <div class="modal-backdrop" id="wwk-modal">
+    <div class="modal-card">
+      <button class="modal-close" aria-label="Close">&times;</button>
+      <h3>What We Know: The Four-Day School Week</h3>
+      <p>
+        This brief synthesized evidence on four-day school weeks for Arkansas districts. It was
+        cited in legislative testimony regarding HB 1864, directly informing the conversation that
+        led to the bill&rsquo;s withdrawal.
+      </p>
+      <img class="modal-screengrab" src="assets/img/4dsw/testimony.jpg" alt="Legislative testimony before the Arkansas Senate Education Committee on SB 607">
+      <a class="artifact-sublink" href="four-day-week-brief.html">Read the brief &rarr;</a>
+
+      <p class="modal-list-label">Research cited in the brief</p>
+      <div class="modal-research-list">
+        <div class="artifact-list-item">
+          <span class="li-icon" title="Peer-reviewed"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M8.5 13.5 7 22l5-3 5 3-1.5-8.5"/></svg></span>
+          <div class="li-text"><span class="src">Peer Reviewed</span><a href="https://doi.org/10.1080/15700763.2025.2491438" target="_blank" rel="noopener">We Wanted to Do Something Innovative: Motivations for Adopting Four-Day Weeks &rarr;</a></div>
+        </div>
+        <div class="artifact-list-item">
+          <span class="li-icon" title="Research report"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h8M8 9h2"/></svg></span>
+          <div class="li-text"><span class="src">Research Report</span><a href="https://oep.uark.edu/arkansas-education-reports/" target="_blank" rel="noopener">Exploring Academic Outcomes in Arkansas Four-Day Districts &rarr;</a></div>
+        </div>
+        <div class="artifact-list-item">
+          <span class="li-icon" title="Policy brief"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2h6a1 1 0 0 1 1 1v2H8V3a1 1 0 0 1 1-1z"/><path d="M8 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2"/><path d="M9 12h6M9 16h4"/></svg></span>
+          <div class="li-text"><span class="src">Policy Brief</span><a href="https://www.slu.edu/education/research/prime-center/education-reports.php" target="_blank" rel="noopener">Four-Day School Week Across State Lines: Attendance in MO &amp; AR &rarr;</a></div>
+        </div>
+        <div class="artifact-list-item">
+          <span class="li-icon" title="Working paper"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></span>
+          <div class="li-text"><span class="src">Working Paper</span>Is Reducing the Week Reducing Teacher Burnout? <em>(Educational Researcher)</em></div>
+        </div>
+        <div class="artifact-list-item">
+          <span class="li-icon" title="Working paper"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></span>
+          <div class="li-text"><span class="src">Working Paper</span><a href="https://edworkingpapers.com/ai24-971" target="_blank" rel="noopener">Teacher Retention and Quality in the Four-Day School Week &rarr;</a></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pop-out: In the News (expanded list) -->
+  <div class="modal-backdrop" id="news-modal">
+    <div class="modal-card">
+      <button class="modal-close" aria-label="Close">&times;</button>
+      <h3>Press &amp; Radio Coverage</h3>
+      <p>
+        Selected press and radio coverage of four-day school weeks in Arkansas.
+      </p>
+      <div class="modal-research-list">
+        <div class="artifact-list-item">
+          <span class="li-icon" title="Newspaper"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h13a1 1 0 0 1 1 1v13a2 2 0 0 0 2 2H5a2 2 0 0 1-2-2V5a1 1 0 0 1 1-1z"/><path d="M18 8h1a1 1 0 0 1 1 1v9"/><path d="M7 8h7M7 12h7M7 16h4"/></svg></span>
+          <div class="li-text"><span class="src">AR Dem-Gazette</span><a href="https://www.arkansasonline.com/news/2025/may/smaller-districts-see-some-benefit-of-shorter-weeks/" target="_blank" rel="noopener">Smaller districts see some benefit of shorter weeks &rarr;</a></div>
+        </div>
+        <div class="artifact-list-item">
+          <span class="li-icon" title="Radio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11h16a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-8a1 1 0 0 1 1-1z"/><path d="m7 11 11-6"/><circle cx="8" cy="16" r="2"/><path d="M14 15h4M14 18h2"/></svg></span>
+          <div class="li-text"><span class="src">KUAF Radio</span><a href="https://www.kuaf.com/education/2025-04/bill-arkansas-legislature-threatens-future-four-day-school-weeks" target="_blank" rel="noopener">A bill in the Arkansas Legislature threatens the future of four-day school weeks &rarr;</a></div>
+        </div>
+        <div class="artifact-list-item">
+          <span class="li-icon" title="Radio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11h16a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-8a1 1 0 0 1 1-1z"/><path d="m7 11 11-6"/><circle cx="8" cy="16" r="2"/><path d="M14 15h4M14 18h2"/></svg></span>
+          <div class="li-text"><span class="src">KUAF Radio</span><a href="https://www.kuaf.com/education/2023-11/lincoln-consolidated-school-district-trims-school-week-benefit-mental-health" target="_blank" rel="noopener">Lincoln Consolidated School District trims school week to benefit mental health &rarr;</a></div>
+        </div>
+        <div class="artifact-list-item">
+          <span class="li-icon" title="Radio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11h16a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-8a1 1 0 0 1 1-1z"/><path d="m7 11 11-6"/><circle cx="8" cy="16" r="2"/><path d="M14 15h4M14 18h2"/></svg></span>
+          <div class="li-text"><span class="src">KUAF Radio</span><a href="https://www.kuaf.com/education/2023-03/why-schools-consider-four-day-weeks" target="_blank" rel="noopener">Why Schools Consider Four-Day Weeks &rarr;</a></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pop-out: Illustrated abstract -->
+  <div class="modal-backdrop" id="illustration-modal">
+    <div class="modal-card">
+      <button class="modal-close" aria-label="Close">&times;</button>
+      <h3>Why Are Schools Changing Calendars?</h3>
+      <p>
+        This doodle shows the top three reasons Arkansas districts adopted 4DSW calendars.
+      </p>
+      <img class="modal-figure" src="assets/img/illustrated-abstracts/barnes-4dsw-abstract.png" alt="Illustrated abstract: Why Are Schools Changing Calendars?">
+
+      <p class="modal-list-label">The research behind it</p>
+      <div class="modal-research-list">
+        <div class="artifact-list-item">
+          <span class="li-icon" title="Peer-reviewed"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M8.5 13.5 7 22l5-3 5 3-1.5-8.5"/></svg></span>
+          <div class="li-text"><span class="src">Peer Reviewed</span><a href="https://doi.org/10.1080/15700763.2025.2491438" target="_blank" rel="noopener">We Wanted to Do Something Innovative: Motivations for Adopting Four-Day Weeks &rarr;</a></div>
+        </div>
+        <div class="artifact-list-item">
+          <span class="li-icon" title="Research report"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h8M8 9h2"/></svg></span>
+          <div class="li-text"><span class="src">Research Report</span><a href="https://oep.uark.edu/arkansas-education-reports/" target="_blank" rel="noopener">Exploring Academic Outcomes in Arkansas Four-Day Districts &rarr;</a></div>
+        </div>
+        <div class="artifact-list-item">
+          <span class="li-icon" title="Policy brief"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2h6a1 1 0 0 1 1 1v2H8V3a1 1 0 0 1 1-1z"/><path d="M8 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2"/><path d="M9 12h6M9 16h4"/></svg></span>
+          <div class="li-text"><span class="src">Policy Brief</span><a href="https://www.slu.edu/education/research/prime-center/education-reports.php" target="_blank" rel="noopener">Four-Day School Week Across State Lines: Attendance in MO &amp; AR &rarr;</a></div>
+        </div>
+        <div class="artifact-list-item">
+          <span class="li-icon" title="Radio interview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11h16a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-8a1 1 0 0 1 1-1z"/><path d="m7 11 11-6"/><circle cx="8" cy="16" r="2"/><path d="M14 15h4M14 18h2"/></svg></span>
+          <div class="li-text"><span class="src">NPR / KUAF</span><a href="https://www.kuaf.com/show/ozarks-at-large/2023-03-30/why-schools-consider-four-day-weeks" target="_blank" rel="noopener">Why Schools Consider Four-Day Weeks &rarr;</a></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pop-out: Dissertation -->
+  <div class="modal-backdrop" id="dissertation-modal">
+    <div class="modal-card">
+      <button class="modal-close" aria-label="Close">&times;</button>
+      <h3>My 4DSW Research in Arkansas</h3>
+      <p>
+        Much of my research is built on my doctoral work at the University of Arkansas, where I
+        analyzed the implementation and outcomes of four-day school weeks across the state.
+      </p>
+      <div class="modal-photo-row">
+        <div class="modal-photo">
+          <figure>
+            <img src="assets/img/4dsw/dissertation-parents.jpg" alt="Kate with her parents after her dissertation defense">
+            <figcaption>With my parents, just after my dissertation defense, 4/10/25.</figcaption>
+          </figure>
+        </div>
+        <div class="modal-photo">
+          <figure>
+            <img src="assets/img/4dsw/dissertation.jpg" alt="Dr. Kate Barnes at her doctoral graduation">
+            <figcaption>Dr. Kate, graduation day, 5/10/25.</figcaption>
+          </figure>
+        </div>
+      </div>
+      <a class="artifact-sublink" href="https://scholarworks.uark.edu/etd/5774/" target="_blank" rel="noopener">Read my dissertation &rarr;</a>
+    </div>
+  </div>
+
+  <!-- Pop-out: OEP blog post -->
+  <div class="modal-backdrop" id="blog-modal">
+    <div class="modal-card">
+      <button class="modal-close" aria-label="Close">&times;</button>
+      <h3>Explaining AR Merit Teacher Pay</h3>
+      <p>
+        This OEP blog post features an infographic I created with real, anonymized teachers to
+        simplify the 2025 merit pay rules.
+      </p>
+      <img class="modal-figure" src="assets/img/merit-pay-infographic.jpg" alt="Infographic explaining the 2025 Arkansas Merit Teacher Incentive Fund program">
+      <p class="modal-caption">The infographic I made for the OEP blog post.</p>
+      <a class="artifact-sublink" href="https://oep.uark.edu/explaining-the-2025-arkansas-merit-teacher-incentive-fund-program/" target="_blank" rel="noopener">Read the blog post &rarr;</a>
+    </div>
+  </div>
+
+  <!-- Pop-out: Illustrated abstracts carousel -->
+  <div class="modal-backdrop" id="abstracts-modal">
+    <div class="modal-card">
+      <button class="modal-close" aria-label="Close">&times;</button>
+      <h3>Illustrated Abstracts</h3>
+      <p>
+        I started doodling in graduate school to stay in touch with my creative side. These
+        illustrated abstracts are how I process complex research, turning a dense study into a
+        single visual you can actually take in.
+      </p>
+      <div class="abstract-carousel" data-carousel>
+        <button class="abstract-nav abstract-prev" aria-label="Previous">&#8592;</button>
+        <div class="abstract-stage">
+          <figure class="abstract-slide active"><img src="assets/img/illustrated-abstracts/iv-explainer.png" alt="Illustrated abstract: Instrumental Variable"></figure>
+          <figure class="abstract-slide"><img src="assets/img/illustrated-abstracts/barnes-abstract.png" alt="Illustrated abstract"></figure>
+          <figure class="abstract-slide"><img src="assets/img/illustrated-abstracts/barnes-abstract-2.png" alt="Illustrated abstract"></figure>
+          <figure class="abstract-slide"><img src="assets/img/illustrated-abstracts/camp-abstract.png" alt="Illustrated abstract"></figure>
+          <figure class="abstract-slide"><img src="assets/img/illustrated-abstracts/djita-abstract.png" alt="Illustrated abstract"></figure>
+        </div>
+        <button class="abstract-nav abstract-next" aria-label="Next">&#8594;</button>
+      </div>
+      <p class="abstract-counter"><span class="abstract-current">1</span> / <span class="abstract-total">5</span></p>
+    </div>
+  </div>
+
+  <script src="nav.js"></script>
+  <script>
+    document.querySelectorAll('.artifact-carousel').forEach(function (c) {
+      var track = c.querySelector('.artifact-scroll');
+      var prev = c.querySelector('.artifact-prev');
+      var next = c.querySelector('.artifact-next');
+      function step() {
+        var card = track.querySelector('.artifact-card');
+        return (card ? card.offsetWidth : 260) + 16; // card width + gap
+      }
+      function update() {
+        var scrollable = track.scrollWidth > track.clientWidth + 2;
+        prev.style.display = next.style.display = scrollable ? '' : 'none';
+        prev.disabled = track.scrollLeft <= 2;
+        next.disabled = track.scrollLeft + track.clientWidth >= track.scrollWidth - 2;
+      }
+      prev.addEventListener('click', function () { track.scrollBy({ left: -step() }); });
+      next.addEventListener('click', function () { track.scrollBy({ left: step() }); });
+      track.addEventListener('scroll', update);
+      window.addEventListener('resize', update);
+      update();
+    });
+
+    // Click-through carousel inside the Illustrated Abstracts pop-out
+    document.querySelectorAll('[data-carousel]').forEach(function (carousel) {
+      var slides = carousel.querySelectorAll('.abstract-slide');
+      var prev = carousel.querySelector('.abstract-prev');
+      var next = carousel.querySelector('.abstract-next');
+      var modal = carousel.closest('.modal-backdrop');
+      var current = modal.querySelector('.abstract-current');
+      var i = 0;
+      function show(n) {
+        i = (n + slides.length) % slides.length;
+        slides.forEach(function (s, idx) { s.classList.toggle('active', idx === i); });
+        if (current) current.textContent = i + 1;
+        prev.disabled = i === 0;
+        next.disabled = i === slides.length - 1;
+      }
+      prev.addEventListener('click', function () { show(i - 1); });
+      next.addEventListener('click', function () { show(i + 1); });
+      show(0);
+    });
+
+    // Pop-out modals
+    document.querySelectorAll('[data-modal]').forEach(function (trigger) {
+      function openModal() {
+        var m = document.getElementById(trigger.getAttribute('data-modal'));
+        if (m) m.classList.add('open');
+      }
+      trigger.addEventListener('click', function (e) {
+        if (e.target.closest('a')) return; // let links inside the card work normally
+        openModal();
+      });
+      trigger.addEventListener('keydown', function (e) {
+        if ((e.key === 'Enter' || e.key === ' ') && e.target === trigger) {
+          e.preventDefault();
+          openModal();
+        }
+      });
+    });
+    document.querySelectorAll('.modal-backdrop').forEach(function (backdrop) {
+      function close() { backdrop.classList.remove('open'); }
+      backdrop.addEventListener('click', function (e) {
+        if (e.target === backdrop) close();
+      });
+      backdrop.querySelector('.modal-close').addEventListener('click', close);
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') {
+        document.querySelectorAll('.modal-backdrop.open').forEach(function (m) { m.classList.remove('open'); });
+      }
+    });
+  </script>
+</body>
+</html>

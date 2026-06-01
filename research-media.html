@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Research &amp; Media | Kate Barnes, Ph.D.</title>
+  <link rel="icon" type="image/png" href="assets/img/kb-logo.png">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* Jump-to sidebar */
+    .research-jumpnav-label {
+      font-family: 'Source Sans 3', sans-serif;
+      font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em;
+      color: #777; font-weight: 700; margin: 0 0 12px;
+    }
+    .research-jumpnav { display: flex; flex-direction: column; gap: 10px; }
+    .research-jumpnav a {
+      font-family: 'Source Sans 3', sans-serif; font-weight: 600; font-size: 0.9rem;
+      color: #500000; text-decoration: none; line-height: 1.4;
+    }
+    .research-jumpnav a:hover { text-decoration: underline; }
+
+    /* Offset anchor jump targets so sticky nav doesn't cover the heading */
+    .pub-group { scroll-margin-top: 80px; }
+
+    /* Per-section head with count */
+    .pub-group-headrow {
+      display: flex; justify-content: space-between; align-items: baseline; gap: 16px;
+      border-bottom: 2px solid #500000; padding-bottom: 10px; margin-bottom: 14px;
+    }
+    .pub-group-headrow .pub-group-title {
+      margin: 0; padding: 0; border-bottom: none; font-size: 1.25rem;
+    }
+    .pub-group-count {
+      font-family: 'Source Sans 3', sans-serif; font-size: 0.78rem; color: #888; font-weight: 600;
+      white-space: nowrap;
+    }
+
+    /* Per-section filters: row of category toggle buttons; clicking one reveals its
+       option pills as a plain row directly below the bar. One category at a time. */
+    .pub-group-filters {
+      display: flex; flex-direction: column; gap: 8px; align-items: flex-start;
+      margin: 0 0 14px; font-family: 'Source Sans 3', sans-serif;
+    }
+    .pub-filter-toggles { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .pub-filter-toggle {
+      font-family: 'Source Sans 3', sans-serif;
+      font-size: 0.7rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.06em;
+      padding: 3px 11px; border-radius: 20px;
+      border: 1px solid #500000; background: transparent;
+      color: #500000; cursor: pointer;
+      line-height: 1.4;
+    }
+    .pub-filter-toggle[aria-expanded="true"] { background: #f3e9e9; }
+    .pub-filter-toggle.has-filter { background: #500000; color: #fff; }
+    /* Option pills for the active category, shown as a plain row below the toggles */
+    .pub-filter-group {
+      display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+      width: 100%; padding-top: 8px;
+      border-top: 1px solid #f0f0f0;
+    }
+    .pub-filter-group[hidden] { display: none; }
+    .pub-group-filters .pub-filter-pill {
+      font-family: 'Source Sans 3', sans-serif; font-size: 0.72rem; font-weight: 600;
+      padding: 2px 9px; border-radius: 20px; border: 1px solid #e8e8e8;
+      background: transparent; color: #500000; cursor: pointer;
+      line-height: 1.4;
+    }
+    .pub-group-filters .pub-filter-pill:hover:not(.active) { border-color: #500000; }
+    .pub-group-filters .pub-filter-pill.active { background: #500000; color: #fff; border-color: #500000; }
+
+    /* Sub-topic pills (revealed when K-12 Education is selected) */
+    .pub-subfilters {
+      display: inline-flex; flex-wrap: wrap; gap: 6px;
+      padding-left: 10px; margin-left: 2px;
+      border-left: 2px solid #e8e8e8;
+    }
+    .pub-subfilters[hidden] { display: none; }
+    .pub-subfilters .pub-filter-pill {
+      font-size: 0.7rem; padding: 1px 8px;
+      border-style: dashed;
+    }
+    .pub-subfilters .pub-filter-pill.active { border-style: solid; }
+
+    /* Body height cap + fade-out */
+    .pub-group-body {
+      max-height: 320px; overflow: hidden; position: relative;
+      transition: max-height 0.25s ease;
+    }
+    .pub-group-body.expanded { max-height: 6000px; }
+    .pub-group-body:not(.expanded)::after {
+      content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 56px;
+      background: linear-gradient(180deg, rgba(255,255,255,0) 0%, #ffffff 80%);
+      pointer-events: none;
+    }
+    .pub-expand-link {
+      display: inline-block; margin-top: 12px;
+      font-family: 'Source Sans 3', sans-serif; font-weight: 600; font-size: 0.85rem;
+      color: #500000; background: none; border: none; cursor: pointer; padding: 4px 0;
+      border-bottom: 1px dashed #500000;
+    }
+    .pub-expand-link:hover { color: #a04040; border-bottom-color: #a04040; }
+
+    /* News row layout */
+    .news-row {
+      display: grid; grid-template-columns: 100px 1fr 220px auto; gap: 16px;
+      align-items: baseline; padding: 10px 0; border-bottom: 1px solid #f3f3f3;
+    }
+    .news-row:last-child { border-bottom: none; }
+    .news-date {
+      font-family: 'Source Sans 3', sans-serif; color: #999; font-size: 0.82rem; font-weight: 600;
+    }
+    .news-title {
+      font-family: 'Source Sans 3', sans-serif; font-size: 0.95rem; color: #222; font-weight: 500;
+      line-height: 1.4;
+    }
+    .news-outlet {
+      font-size: 0.82rem; color: #777; font-style: italic; text-align: right;
+    }
+    .news-link-wrap { display: inline-flex; align-items: center; gap: 8px; }
+    .news-icon {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 16px; height: 16px; color: #500000;
+    }
+    .news-icon svg { width: 16px; height: 16px; display: block; }
+
+    /* Responsive: collapse news row to stacked on narrow */
+    @media (max-width: 768px) {
+      .news-row {
+        grid-template-columns: 1fr;
+        gap: 4px; padding: 12px 0;
+      }
+      .news-outlet { text-align: left; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav id="site-nav">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo" aria-label="Kate Barnes home">
+        <img src="assets/img/kb-logo.png" alt="KB">
+      </a>
+      <button class="nav-toggle" id="nav-toggle" aria-label="Toggle navigation" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav-links" id="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="research-media.html">Research &amp; Media</a></li>
+        <li><a href="portfolio.html">Portfolio</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main>
+    <div class="container">
+
+      <div class="page-header page-header--center">
+        <h1>Research &amp; Media</h1>
+      </div>
+
+      <div class="research-layout">
+
+        <aside class="research-sidebar" aria-label="Jump to section">
+          <p class="research-jumpnav-label">Jump to</p>
+          <nav class="research-jumpnav">
+            <a href="#peer-reviewed">Peer-Reviewed</a>
+            <a href="#reports">Reports</a>
+            <a href="#briefs">Research and Policy Briefs</a>
+            <a href="#media">News &amp; media</a>
+          </nav>
+        </aside>
+
+        <div class="research-content">
+
+          <!-- PEER-REVIEWED PUBLICATIONS -->
+          <section class="pub-group" id="peer-reviewed" data-section="peer-reviewed">
+            <div class="pub-group-headrow">
+              <h2 class="pub-group-title">Peer-Reviewed Publications</h2>
+              <span class="pub-group-count"></span>
+            </div>
+            <div class="pub-group-body" data-no-cap>
+
+              <article class="pub-item" data-type="peer-reviewed" data-year="2026" data-topics="four-day teacher-well-being" data-state="arkansas">
+                <div class="pub-item-head">
+                  <h3 class="pub-item-title">Is Reducing the Week Reducing Teacher Burnout? An Analysis of Teacher Well-Being in Four-Day Districts</h3>
+                  <span class="pub-item-year">2026</span>
+                </div>
+                <div class="pub-item-venue"><em>Educational Researcher</em> (In Revision)</div>
+                <div class="pub-item-authors"><strong>Barnes, K.</strong></div>
+                <div class="pub-item-tags">
+                  <span class="pub-tag">Four-Day Week</span>
+                  <span class="pub-tag">Teacher Well-Being</span>
+                </div>
+              </article>
+
+              <article class="pub-item" data-type="peer-reviewed" data-year="2025" data-topics="four-day year-round" data-state="arkansas">
+                <div class="pub-item-head">
+                  <h3 class="pub-item-title">We Wanted to Do Something Innovative: Exploring Motivations of Arkansas Districts Adopting Four-Day School Weeks or Year-Round Calendars</h3>
+                  <span class="pub-item-year">2025</span>
+                </div>
+                <div class="pub-item-venue"><em>Leadership and Policy in Schools</em></div>
+                <div class="pub-item-authors"><strong>Barnes, K.</strong>, &amp; McKenzie, S. C.</div>
+                <div class="pub-item-btns">
+                  <a href="https://doi.org/10.1080/15700763.2025.2491438" class="pub-btn" target="_blank" rel="noopener">Link &rarr;</a>
+                </div>
+                <div class="pub-item-tags">
+                  <span class="pub-tag">Four-Day Week</span>
+                  <span class="pub-tag">Year-Round Calendar</span>
+                </div>
+                <details class="pub-abstract">
+                  <summary>Abstract</summary>
+                  <div class="pub-abstract-body"><p>This study investigates Arkansas school districts&rsquo; motivations, challenges, and successes in adopting non-traditional school calendars, particularly four-day school weeks (4DSW) and year-round calendars (YRC). Using a qualitative thematic analysis, we interviewed twenty-three superintendents from districts that had chosen a 4DSW or YRC. Data analysis revealed nuanced insights into this transition&rsquo;s decision-making processes and outcomes. Principal motivators identified included increasing teacher recruitment and retention and aspirations for improved academic and well-being outcomes for educators and students. Noteworthy benefits reported by district leaders included reduced absenteeism, improved teacher morale, and increased opportunities for professional development. However, the transition to non-traditional calendars had challenges, such as heightened communication demands and the imperative for stakeholder collaboration. This study concludes by offering practical recommendations for districts contemplating similar shifts, emphasizing the importance of strategic planning and proactive stakeholder engagement.</p></div>
+                </details>
+              </article>
+
+            </div>
+          </section>
+
+          <!-- REPORTS -->
+          <section class="pub-group" id="reports" data-section="reports">
+            <div class="pub-group-headrow">
+              <h2 class="pub-group-title">Reports</h2>
+              <span class="pub-group-count"></span>
+            </div>
+            <div class="pub-group-filters">
+              <div class="pub-filter-toggles">
+                <button class="pub-filter-toggle" type="button" data-target="rep-pubtype" aria-expanded="false">Type</button>
+                <button class="pub-filter-toggle" type="button" data-target="rep-topics" aria-expanded="false">Topic</button>
+                <button class="pub-filter-toggle" type="button" data-target="rep-year" aria-expanded="false">Year</button>
+              </div>
+              <div class="pub-filter-group" data-filter-key="pubtype" id="rep-pubtype" hidden>
+                <button type="button" class="pub-filter-pill active" data-filter="all" aria-pressed="true">All</button>
+                <button type="button" class="pub-filter-pill" data-filter="research">Research</button>
+                <button type="button" class="pub-filter-pill" data-filter="policy">Policy</button>
+              </div>
+              <div class="pub-filter-group" data-filter-key="topics" id="rep-topics" hidden>
+                <button type="button" class="pub-filter-pill active" data-filter="all" aria-pressed="true">All</button>
+                <button type="button" class="pub-filter-pill" data-filter="four-day">4DSW</button>
+                <button type="button" class="pub-filter-pill" data-filter="k12" data-reveals="k12-children-reports">K-12 Education</button>
+                <span class="pub-subfilters" data-group="k12-children-reports" hidden>
+                  <button type="button" class="pub-filter-pill" data-filter="plcs">PLCs</button>
+                  <button type="button" class="pub-filter-pill" data-filter="year-round">Year-Round</button>
+                  <button type="button" class="pub-filter-pill" data-filter="ell">ELL</button>
+                  <button type="button" class="pub-filter-pill" data-filter="middle-grades">Middle Grades</button>
+                  <button type="button" class="pub-filter-pill" data-filter="discipline">Discipline</button>
+                  <button type="button" class="pub-filter-pill" data-filter="college-access">College Access</button>
+                  <button type="button" class="pub-filter-pill" data-filter="cte">CTE</button>
+                </span>
+              </div>
+              <div class="pub-filter-group" data-filter-key="year" id="rep-year" hidden>
+                <button type="button" class="pub-filter-pill active" data-filter="all" aria-pressed="true">All</button>
+                <button type="button" class="pub-filter-pill" data-filter="2025">2025</button>
+                <button type="button" class="pub-filter-pill" data-filter="2024">2024</button>
+                <button type="button" class="pub-filter-pill" data-filter="2023">2023</button>
+                <button type="button" class="pub-filter-pill" data-filter="2022">2022</button>
+              </div>
+            </div>
+            <div class="pub-group-body">
+
+              <article class="pub-item" data-type="report" data-pubtype="research" data-year="2025" data-topics="four-day" data-state="arkansas">
+                <div class="pub-item-head">
+                  <h3 class="pub-item-title">Four-Day School Week Across State Lines: Insights on Attendance from Missouri and Arkansas</h3>
+                  <span class="pub-item-year">2025</span>
+                </div>
+                <div class="pub-item-venue"><em>PRiME Center, St. Louis University</em></div>
+                <div class="pub-item-authors"><strong>Barnes, K.</strong>, &amp; McKenzie, S.</div>
+                <div class="pub-item-btns">
+                  <a href="https://www.slu.edu/education/research/prime-center/education-reports.php" class="pub-btn" target="_blank" rel="noopener">Link &rarr;</a>
+                </div>
+                <div class="pub-item-tags">
+                  <span class="pub-tag">Four-Day Week</span>
+                </div>
+                <details class="pub-abstract">
+                  <summary>Abstract</summary>
+                  <div class="pub-abstract-body"><p>The four-day school week (4DSW) has gained traction as a policy intervention in rural districts across the United States, often proposed as a strategy to improve student attendance by providing families with greater flexibility for appointments and other commitments. This report investigates the impact of 4DSW adoption on student attendance in Missouri and Arkansas&mdash;two states with distinct experiences in implementing this model. Using quasi-experimental methods, we analyze longitudinal attendance data to determine if the shift to a shortened week yields consistent improvements in student engagement. Our results reveal divergent outcomes: in Missouri, where the 4DSW model is well-established, we find no significant impact on overall student attendance. Conversely, in Arkansas, where adoption is more recent, we observe small but statistically significant improvements in attendance, particularly among economically disadvantaged students; however, these gains tend to diminish over time. These findings suggest that while the 4DSW may offer localized, short-term benefits in some contexts, it should not be viewed as a reliable or standalone solution for improving student attendance.</p></div>
+                </details>
+              </article>
+
+              <article class="pub-item" data-type="report" data-pubtype="policy" data-year="2024" data-topics="plcs k12" data-state="arkansas">
+                <div class="pub-item-head">
+                  <h3 class="pub-item-title">Professional Learning Communities and Student Outcomes: A Quantitative Analysis of the PLC at Work Model in Arkansas Schools</h3>
+                  <span class="pub-item-year">2024</span>
+                </div>
+                <div class="pub-item-venue"><em>Office for Education Policy, University of Arkansas</em></div>
+                <div class="pub-item-authors"><strong>Barnes, K.</strong>, &amp; McKenzie, S.</div>
+                <div class="pub-item-btns">
+                  <a href="https://oep.uark.edu/arkansas-education-reports/" class="pub-btn" target="_blank" rel="noopener">Link &rarr;</a>
+                </div>
+                <div class="pub-item-tags">
+                  <span class="pub-tag">PLCs</span>
+                </div>
+                <details class="pub-abstract">
+                  <summary>Abstract</summary>
+                  <div class="pub-abstract-body"><p>This study evaluates the impact of the Professional Learning Communities (PLC) at Work model on student achievement and growth in Arkansas schools. Implemented through a partnership between the Arkansas Department of Education and Solution Tree, the program promotes collaborative professional development among educators. Using a matching process and an event study framework, we analyze longitudinal data on student performance in English Language Arts (ELA) and mathematics from multiple cohorts of schools. The overall results reveal mixed outcomes. While no statistically significant improvements were observed in overall student achievement or growth, there were concerning trends for economically disadvantaged students. This subgroup exhibited consistent negative associations with program participation, particularly in mathematics, suggesting the PLC at Work model may not be positively impacting these students. Additionally, while some cohorts showed temporary positive effects in ELA growth, these did not persist. The results raise concerns about the program&rsquo;s current effectiveness and suggest a need for enhanced oversight and accountability. The study contributes valuable insights for policymakers and educators aiming to leverage professional development initiatives to enhance student outcomes.</p></div>
+                </details>
+              </article>
+
+              <article class="pub-item" data-type="report" data-pubtype="policy" data-year="2023" data-topics="four-day year-round k12" data-state="arkansas">
+                <div class="pub-item-head">
+                  <h3 class="pub-item-title">Exploring Academic Outcomes in Arkansas Schools: A Study of Four-Day School Week and Year-Round Calendar Districts</h3>
+                  <span class="pub-item-year">2023</span>
+                </div>
+                <div class="pub-item-venue"><em>Office for Education Policy, University of Arkansas</em></div>
+                <div class="pub-item-authors"><strong>Barnes, K.</strong>, &amp; McKenzie, S.</div>
+                <div class="pub-item-btns">
+                  <a href="https://oep.uark.edu/arkansas-education-reports/" class="pub-btn" target="_blank" rel="noopener">Link &rarr;</a>
+                </div>
+                <div class="pub-item-tags">
+                  <span class="pub-tag">Four-Day Week</span>
+                  <span class="pub-tag">Year-Round Calendar</span>
+                </div>
+                <details class="pub-abstract">
+                  <summary>Abstract</summary>
+                  <div class="pub-abstract-body"><p>In 2021, Arkansas&rsquo;s state legislature passed Act 688 allowing school districts to adopt non-traditional calendars. Districts could choose from four calendar options: traditional, four-day school weeks (4DSW), year-round calendar (YRC), and alternative. During the 2022&ndash;23 school year, 33 districts adopted new calendars; twenty-seven districts operated using a 4DSW, and six used a YRC. Several more districts adopted 4DSW in the 2023&ndash;24 school year. At present, thirty-four Arkansas districts use a 4DSW. This report used publicly available data from the Arkansas Department of Education to explore the relationship between adoption of a 4DSW or YRC and the following student outcomes: academic growth, academic achievement, and absenteeism. Using a quantitative analysis of multiple cohorts, the study found positive, and statistically significant results in student value-added growth in literacy for districts that adopted a 4DSW. Outside of this result, there were no discernable positive or negative effects for districts that adopted a 4DSW. Districts that adopted YRC, however, experienced more negative and statistically significant results. The findings underscore the complexity of non-traditional calendar adoption and the need for further research, particularly exploring individual district implementation strategies.</p></div>
+                </details>
+              </article>
+
+              <article class="pub-item" data-type="report" data-pubtype="policy" data-year="2023" data-topics="ell k12" data-state="arkansas">
+                <div class="pub-item-head">
+                  <h3 class="pub-item-title">English Language Learners and Their Postsecondary Education Outcomes: Evidence from Arkansas</h3>
+                  <span class="pub-item-year">2023</span>
+                </div>
+                <div class="pub-item-venue"><em>Department of Education Reform, University of Arkansas</em></div>
+                <div class="pub-item-authors">Djita, R., <strong>Barnes, K.</strong>, &amp; McKenzie, S.</div>
+                <div class="pub-item-btns">
+                  <a href="https://edre.uark.edu/research/working-papers/" class="pub-btn" target="_blank" rel="noopener">Link &rarr;</a>
+                </div>
+                <div class="pub-item-tags">
+                  <span class="pub-tag">ELL</span>
+                </div>
+                <details class="pub-abstract">
+                  <summary>Abstract</summary>
+                  <div class="pub-abstract-body"><p>Nearly 10% of students enrolled in public schools in the U.S. are identified as English Language Learners (ELLs). The population of ELL students is expected to continue to rise, therefore research about ELLs is both timely and essential. An increasing body of literature addresses the experience and outcomes of ELLs in the context of both K&ndash;12 and postsecondary education. Most studies, however, focus on California, Texas, Florida, and New York (Aguilar, 2010; Callahan et al., 2023; Flores, Batalova &amp; Fix, 2012) presenting a need for more research to make state-by-state comparisons especially from rural states that have become new destinations for many immigrant families. This study seeks to understand the postsecondary enrollment trends of ELL students in Arkansas. Using administrative data from the Arkansas Department of Education and the National Student Clearinghouse, we found that ELLs in Arkansas are less likely to attend postsecondary institutions compared to native English speakers. Results vary by urbanicity and socioeconomic status. Similar themes appear when analyzing the types of postsecondary institutions that ELLs enrolled in after high school graduation. We conclude our analysis by providing discussions and policy recommendations based on the results.</p></div>
+                </details>
+              </article>
+
+              <article class="pub-item" data-type="report" data-pubtype="policy" data-year="2023" data-topics="four-day year-round k12" data-state="arkansas">
+                <div class="pub-item-head">
+                  <h3 class="pub-item-title">We Wanted to Do Something Innovative: Exploring Motivations of Arkansas Districts Adopting Four-Day School Weeks or Year-Round Calendars</h3>
+                  <span class="pub-item-year">2023</span>
+                </div>
+                <div class="pub-item-venue"><em>Office for Education Policy, University of Arkansas</em></div>
+                <div class="pub-item-authors"><strong>Barnes, K.</strong>, &amp; McKenzie, S.</div>
+                <div class="pub-item-btns">
+                  <a href="https://oep.uark.edu/arkansas-education-reports/" class="pub-btn" target="_blank" rel="noopener">Link &rarr;</a>
+                </div>
+                <div class="pub-item-tags">
+                  <span class="pub-tag">Four-Day Week</span>
+                  <span class="pub-tag">Year-Round Calendar</span>
+                </div>
+                <details class="pub-abstract">
+                  <summary>Abstract</summary>
+                  <div class="pub-abstract-body"><p>Report version of the peer-reviewed publication on superintendent motivations for calendar adoption, written for practitioner and policymaker audiences.</p></div>
+                </details>
+              </article>
+
+              <article class="pub-item" data-type="report" data-pubtype="policy" data-year="2022" data-topics="middle-grades k12" data-state="arkansas">
+                <div class="pub-item-head">
+                  <h3 class="pub-item-title">Movin' On Up: An Examination of Value-Added Growth During School Transition Years in Arkansas</h3>
+                  <span class="pub-item-year">2022</span>
+                </div>
+                <div class="pub-item-venue"><em>Office for Education Policy, University of Arkansas</em></div>
+                <div class="pub-item-authors"><strong>Barnes, K.</strong>, McKenzie, S., &amp; Reid, C.</div>
+                <div class="pub-item-btns">
+                  <a href="https://oep.uark.edu/arkansas-education-reports/" class="pub-btn" target="_blank" rel="noopener">Link &rarr;</a>
+                </div>
+                <div class="pub-item-tags">
+                  <span class="pub-tag">Middle Grades</span>
+                </div>
+                <details class="pub-abstract">
+                  <summary>Abstract</summary>
+                  <div class="pub-abstract-body"><p>Finds that students in Arkansas experience a dip in value-added growth during building-transition years (e.g., moving from elementary to middle school), with effects concentrated among students in larger schools.</p></div>
+                </details>
+              </article>
+
+            </div>
+            <button type="button" class="pub-expand-link" data-expand>View all 6 reports</button>
+          </section>
+
+          <!-- RESEARCH AND POLICY BRIEFS -->
+          <section class="pub-group" id="briefs" data-section="briefs">
+            <div class="pub-group-headrow">
+              <h2 class="pub-group-title">Research and Policy Briefs</h2>
+              <span class="pub-group-count"></span>
+            </div>
+            <div class="pub-group-filters">
+              <div class="pub-filter-toggles">
+                <button class="pub-filter-toggle" type="button" data-target="br-pubtype" aria-expanded="false">Type</button>
+                <button class="pub-filter-toggle" type="button" data-target="br-topics" aria-expanded="false">Topic</button>
+                <button class="pub-filter-toggle" type="button" data-target="br-state" aria-expanded="false">State</button>
+                <button class="pub-filter-toggle" type="button" data-target="br-year" aria-expanded="false">Year</button>
+              </div>
+              <div class="pub-filter-group" data-filter-key="pubtype" id="br-pubtype" hidden>
+                <button type="button" class="pub-filter-pill active" data-filter="all" aria-pressed="true">All</button>
+                <button type="button" class="pub-filter-pill" data-filter="research">Research</button>
+                <button type="button" class="pub-filter-pill" data-filter="policy">Policy</button>
+              </div>
+              <div class="pub-filter-group" data-filter-key="topics" id="br-topics" hidden>
+                <button type="button" class="pub-filter-pill active" data-filter="all" aria-pressed="true">All</button>
+                <button type="button" class="pub-filter-pill" data-filter="four-day">4DSW</button>
+                <button type="button" class="pub-filter-pill" data-filter="k12" data-reveals="k12-children-briefs">K-12 Education</button>
+                <span class="pub-subfilters" data-group="k12-children-briefs" hidden>
+                  <button type="button" class="pub-filter-pill" data-filter="plcs">PLCs</button>
+                  <button type="button" class="pub-filter-pill" data-filter="year-round">Year-Round</button>
+                  <button type="button" class="pub-filter-pill" data-filter="ell">ELL</button>
+                  <button type="button" class="pub-filter-pill" data-filter="middle-grades">Middle Grades</button>
+                  <button type="button" class="pub-filter-pill" data-filter="discipline">Discipline</button>
+                  <button type="button" class="pub-filter-pill" data-filter="college-access">College Access</button>
+                  <button type="button" class="pub-filter-pill" data-filter="cte">CTE</button>
+                </span>
+              </div>
+              <div class="pub-filter-group" data-filter-key="state" id="br-state" hidden>
+                <button type="button" class="pub-filter-pill active" data-filter="all" aria-pressed="true">All</button>
+                <button type="button" class="pub-filter-pill" data-filter="arkansas">AR</button>
+                <button type="button" class="pub-filter-pill" data-filter="texas">TX</button>
+              </div>
+              <div class="pub-filter-group" data-filter-key="year" id="br-year" hidden>
+                <button type="button" class="pub-filter-pill active" data-filter="all" aria-pressed="true">All</button>
+                <button type="button" class="pub-filter-pill" data-filter="2026">2026</button>
+                <button type="button" class="pub-filter-pill" data-filter="2024">2024</button>
+                <button type="button" class="pub-filter-pill" data-filter="2023">2023</button>
+                <button type="button" class="pub-filter-pill" data-filter="2022">2022</button>
+              </div>
+            </div>
+            <div class="pub-group-body">
+
+              <article class="pub-item" data-type="brief" data-pubtype="research" data-year="2026" data-topics="discipline k12" data-state="texas">
+                <div class="pub-item-head">
+                  <h3 class="pub-item-title">Into DEEP: Finding Schools Where Black Students Thrive in Texas</h3>
+                  <span class="pub-item-year">2026</span>
+                </div>
+                <div class="pub-item-venue"><em>Education Research Center, Texas A&amp;M University</em></div>
+                <div class="pub-item-authors">Brief by <strong>Barnes, K.</strong></div>
+                <div class="pub-item-btns">
+                  <a href="https://drive.google.com/file/d/1iCj8nSfxCk-AhtaGZ4ip64VTmxX4E60d/preview" class="pub-btn" target="_blank" rel="noopener">Link &rarr;</a>
+                </div>
+                <div class="pub-item-tags">
+                  <span class="pub-tag">Discipline</span>
+                  <span class="pub-tag">Texas</span>
+                </div>
+                <details class="pub-abstract">
+                  <summary>Abstract</summary>
+                  <div class="pub-abstract-body"><p>Black students in Texas experience the highest suspension rates among all racial groups and consistently perform below their peers on state assessments. Research shows these two problems are connected. This brief identifies urban schools in Texas that have achieved high academic performance while maintaining proportional suspension rates for Black students.</p><p>Using state and federal data from 2020&ndash;2021, researchers found that only 87 of 3,988 urban schools in Texas (2%) met both benchmarks. These schools, called DEEP schools (Disciplinary Excellence and Exemplary Performance), were mostly located near the Texas-Mexico border and in and around Houston and Dallas. They had more diverse teachers than average, but most did not have full-time counselors, social workers, or psychologists. These results show what Black students in Texas can achieve and point to where more support is needed.</p></div>
+                </details>
+              </article>
+
+              <article class="pub-item" data-type="brief" data-pubtype="research" data-year="2026" data-topics="college-access k12" data-state="texas">
+                <div class="pub-item-head">
+                  <h3 class="pub-item-title">Distance to Degrees: How Proximity Shapes Opportunity in Texas</h3>
+                  <span class="pub-item-year">2026</span>
+                </div>
+                <div class="pub-item-venue"><em>Education Research Center, Texas A&amp;M University</em></div>
+                <div class="pub-item-authors">Brief by <strong>Barnes, K.</strong></div>
+                <div class="pub-item-btns">
+                  <a href="https://drive.google.com/file/d/1K8EAAKQFPTTTKBcQ1lChlZ0_nUhF3Ue_/preview" class="pub-btn" target="_blank" rel="noopener">Link &rarr;</a>
+                </div>
+                <div class="pub-item-tags">
+                  <span class="pub-tag">College Access</span>
+                  <span class="pub-tag">Texas</span>
+                </div>
+                <details class="pub-abstract">
+                  <summary>Abstract</summary>
+                  <div class="pub-abstract-body"><p>Community colleges are a key pathway to higher education, but many students live too far to attend. This brief explores how driving distance to public colleges affects college enrollment and degree completion in Texas. It highlights that Hispanic, Black, and lower-income students are most impacted when access is limited.</p><p>Using data from all Texas public high school graduates (2013&ndash;2017), researchers found that students living more than 30 minutes from a community college are less likely to enroll or complete degrees. While White and higher-income students often select four-year schools, Hispanic, Black, and lower-income students are more likely to forgo college, thereby widening degree gaps up to eight years after graduation.</p></div>
+                </details>
+              </article>
+
+              <article class="pub-item" data-type="brief" data-pubtype="research" data-year="2026" data-topics="college-access k12" data-state="texas">
+                <div class="pub-item-head">
+                  <h3 class="pub-item-title">Can Intensive Advising Open Doors to Selective Colleges? Evidence from the EMERGE Fellowship</h3>
+                  <span class="pub-item-year">2026</span>
+                </div>
+                <div class="pub-item-venue"><em>Education Research Center, Texas A&amp;M University</em></div>
+                <div class="pub-item-authors">Brief by <strong>Barnes, K.</strong></div>
+                <div class="pub-item-btns">
+                  <a href="https://drive.google.com/file/d/1E4cTdMhhNW2GoMBjNPA_S7MPd_4kjTiA/preview" class="pub-btn" target="_blank" rel="noopener">Link &rarr;</a>
+                </div>
+                <div class="pub-item-tags">
+                  <span class="pub-tag">College Access</span>
+                  <span class="pub-tag">Texas</span>
+                </div>
+                <details class="pub-abstract">
+                  <summary>Abstract</summary>
+                  <div class="pub-abstract-body"><p>High-achieving low-income and first-generation students apply to selective colleges far less than wealthier peers with similar levels of academic achievement. Those attending less selective colleges graduate at lower rates and earn less. For students with limited resources, this access gap can shape their future.</p><p>This brief draws on a study of the EMERGE Fellowship, a multi-year college-access program serving students in a large urban school district in Texas. Using a rigorous cutoff-based research design, researchers found that EMERGE students were more likely to apply to selective colleges, submit more applications, and enroll at institutions with stronger graduation outcomes. The findings suggest that sustained, personalized advising can facilitate selective college outcomes for students from socioeconomically marginalized backgrounds.</p></div>
+                </details>
+              </article>
+
+              <article class="pub-item" data-type="brief" data-pubtype="policy" data-year="2024" data-topics="plcs k12" data-state="arkansas">
+                <div class="pub-item-head">
+                  <h3 class="pub-item-title">Professional Learning Communities and Student Outcomes</h3>
+                  <span class="pub-item-year">2024</span>
+                </div>
+                <div class="pub-item-venue"><em>Office for Education Policy, University of Arkansas</em></div>
+                <div class="pub-item-authors"><strong>Barnes, K.</strong>, &amp; McKenzie, S.</div>
+                <div class="pub-item-btns">
+                  <a href="https://oep.uark.edu/policy-briefs/" class="pub-btn" target="_blank" rel="noopener">Link &rarr;</a>
+                </div>
+                <div class="pub-item-tags"><span class="pub-tag">PLCs</span></div>
+                <details class="pub-abstract">
+                  <summary>Abstract</summary>
+                  <div class="pub-abstract-body"><p>This study evaluates the impact of Solution Tree&rsquo;s Professional Learning Communities (PLC) at Work model on the academic achievement and growth of students in Arkansas schools. It provides the first large-scale evaluation of the PLC at Work model&rsquo;s effectiveness in improving student academic outcomes. Using publicly available data from the Arkansas Department of Education (ADE), the analysis uses a two-stage matching process and an event study framework to determine the effectiveness of PLC at Work across six cohorts. The findings hold significant implications for policymakers, educators, and researchers interested in leveraging professional development to enhance educational practices and student outcomes. Overall, we find no statistically significant impacts on student achievement or value-added growth, suggesting that the PLC at Work model may not improve academic outcomes for Arkansas students.</p></div>
+                </details>
+              </article>
+
+              <article class="pub-item" data-type="brief" data-pubtype="policy" data-year="2023" data-topics="four-day year-round k12" data-state="arkansas">
+                <div class="pub-item-head">
+                  <h3 class="pub-item-title">Four-Day School Week and Year-Round Calendar Academic Outcomes</h3>
+                  <span class="pub-item-year">2023</span>
+                </div>
+                <div class="pub-item-venue"><em>Office for Education Policy, University of Arkansas</em></div>
+                <div class="pub-item-authors"><strong>Barnes, K.</strong>, &amp; McKenzie, S.</div>
+                <div class="pub-item-btns">
+                  <a href="https://oep.uark.edu/policy-briefs/" class="pub-btn" target="_blank" rel="noopener">Link &rarr;</a>
+                </div>
+                <div class="pub-item-tags">
+                  <span class="pub-tag">Four-Day Week</span>
+                  <span class="pub-tag">Year-Round Calendar</span>
+                </div>
+                <details class="pub-abstract">
+                  <summary>Abstract</summary>
+                  <div class="pub-abstract-body"><p>This brief provides an overview of the findings from a research report examining the academic outcomes of Arkansas school districts using a four-day school week or year-round calendar. We aim to shed light on trends related to academic outcomes. We assess the impacts of recent calendar changes in this context and make recommendations.</p></div>
+                </details>
+              </article>
+
+              <article class="pub-item" data-type="brief" data-pubtype="policy" data-year="2023" data-topics="cte k12" data-state="arkansas">
+                <div class="pub-item-head">
+                  <h3 class="pub-item-title">Arkansas LEARNS Report 4A: Arkansas's Career and Technical Education (CTE) Programs</h3>
+                  <span class="pub-item-year">2023</span>
+                </div>
+                <div class="pub-item-venue"><em>Office for Education Policy, University of Arkansas</em></div>
+                <div class="pub-item-authors"><strong>Barnes, K.</strong>, &amp; McGee, J.</div>
+                <div class="pub-item-btns">
+                  <a href="https://oep.uark.edu/policy-briefs/" class="pub-btn" target="_blank" rel="noopener">Link &rarr;</a>
+                </div>
+                <div class="pub-item-tags"><span class="pub-tag">CTE</span></div>
+                <details class="pub-abstract">
+                  <summary>Abstract</summary>
+                  <div class="pub-abstract-body"><p>Commissioned analysis of CTE program reach and outcomes in Arkansas under the Arkansas LEARNS Act framework.</p></div>
+                </details>
+              </article>
+
+              <article class="pub-item" data-type="brief" data-pubtype="policy" data-year="2023" data-topics="four-day year-round k12" data-state="arkansas">
+                <div class="pub-item-head">
+                  <h3 class="pub-item-title">Motivations for Adopting Alternative Calendars</h3>
+                  <span class="pub-item-year">2023</span>
+                </div>
+                <div class="pub-item-venue"><em>Office for Education Policy, University of Arkansas</em></div>
+                <div class="pub-item-authors"><strong>Barnes, K.</strong>, &amp; McKenzie, S.</div>
+                <div class="pub-item-btns">
+                  <a href="https://oep.uark.edu/policy-briefs/" class="pub-btn" target="_blank" rel="noopener">Link &rarr;</a>
+                </div>
+                <div class="pub-item-tags">
+                  <span class="pub-tag">Four-Day Week</span>
+                  <span class="pub-tag">Year-Round Calendar</span>
+                </div>
+                <details class="pub-abstract">
+                  <summary>Abstract</summary>
+                  <div class="pub-abstract-body"><p>This brief provides an overview of the motivations for Arkansas school districts adopting a four-day school week or year-round calendar. In addition to examining these motivations, this brief provides an overview of the districts adopting non-traditional calendars and policy recommendations for districts and communities considering changing calendars.</p></div>
+                </details>
+              </article>
+
+              <article class="pub-item" data-type="brief" data-pubtype="policy" data-year="2022" data-topics="middle-grades k12" data-state="arkansas">
+                <div class="pub-item-head">
+                  <h3 class="pub-item-title">School Transitions and Value-Added Growth</h3>
+                  <span class="pub-item-year">2022</span>
+                </div>
+                <div class="pub-item-venue"><em>Office for Education Policy, University of Arkansas</em></div>
+                <div class="pub-item-authors"><strong>Barnes, K.</strong>, McKenzie, S., &amp; Reid, C.</div>
+                <div class="pub-item-btns">
+                  <a href="https://oep.uark.edu/policy-briefs/" class="pub-btn" target="_blank" rel="noopener">Link &rarr;</a>
+                </div>
+                <div class="pub-item-tags"><span class="pub-tag">Middle Grades</span></div>
+                <details class="pub-abstract">
+                  <summary>Abstract</summary>
+                  <div class="pub-abstract-body"><p>In this brief, we examine grade-level value-added growth scores during the years that students transition upward to a new building. We used five years of publicly available growth data to compare and make predictions about a grade&rsquo;s value-added growth for mathematics and ELA during a transition year. We find that transitioning schools in 6th and 7th grade continually has an impact on value-added growth scores.</p></div>
+                </details>
+              </article>
+
+            </div>
+            <button type="button" class="pub-expand-link" data-expand>View all 8 briefs</button>
+          </section>
+
+          <!-- NEWS & MEDIA -->
+          <section class="pub-group" id="media" data-section="media">
+            <div class="pub-group-headrow">
+              <h2 class="pub-group-title">News &amp; media</h2>
+              <span class="pub-group-count"></span>
+            </div>
+            <div class="pub-group-filters">
+              <div class="pub-filter-toggles">
+                <button class="pub-filter-toggle" type="button" data-target="md-mtype" aria-expanded="false">Type</button>
+                <button class="pub-filter-toggle" type="button" data-target="md-state" aria-expanded="false">State</button>
+                <button class="pub-filter-toggle" type="button" data-target="md-year" aria-expanded="false">Year</button>
+              </div>
+              <div class="pub-filter-group" data-filter-key="mtype" id="md-mtype" hidden>
+                <button type="button" class="pub-filter-pill active" data-filter="all" aria-pressed="true">All</button>
+                <button type="button" class="pub-filter-pill" data-filter="newspaper">Newspaper</button>
+                <button type="button" class="pub-filter-pill" data-filter="radio">Radio</button>
+                <button type="button" class="pub-filter-pill" data-filter="online">Online article</button>
+                <button type="button" class="pub-filter-pill" data-filter="press-mention">Press mention</button>
+                <button type="button" class="pub-filter-pill" data-filter="interview">Interview</button>
+              </div>
+              <div class="pub-filter-group" data-filter-key="state" id="md-state" hidden>
+                <button type="button" class="pub-filter-pill active" data-filter="all" aria-pressed="true">All</button>
+                <button type="button" class="pub-filter-pill" data-filter="arkansas">AR</button>
+                <button type="button" class="pub-filter-pill" data-filter="arizona">AZ</button>
+              </div>
+              <div class="pub-filter-group" data-filter-key="year" id="md-year" hidden>
+                <button type="button" class="pub-filter-pill active" data-filter="all" aria-pressed="true">All</button>
+                <button type="button" class="pub-filter-pill" data-filter="2025">2025</button>
+                <button type="button" class="pub-filter-pill" data-filter="2024">2024</button>
+                <button type="button" class="pub-filter-pill" data-filter="2023">2023</button>
+              </div>
+            </div>
+            <div class="pub-group-body">
+
+              <div class="news-row" data-year="2025" data-state="arizona" data-mtype="online interview">
+                <span class="news-date">Jul 2025</span>
+                <span class="news-title">Dysart Schools defends $500K Vegas trip as students lose bus service</span>
+                <span class="news-outlet">Arizona's Family</span>
+                <span class="news-link-wrap">
+                  <span class="news-icon" title="Online article" aria-label="Online article"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a13.5 13.5 0 0 1 0 18"/><path d="M12 3a13.5 13.5 0 0 0 0 18"/></svg></span>
+                  <a href="https://www.azfamily.com/2024/07/dysart-schools-defends-500k-vegas-trip-as-students-lose-bus-service/" class="pub-btn" target="_blank" rel="noopener">Link &rarr;</a>
+                </span>
+              </div>
+
+              <div class="news-row" data-year="2025" data-state="arkansas" data-mtype="newspaper press-mention">
+                <span class="news-date">May 2025</span>
+                <span class="news-title">Smaller districts see some benefit of shorter weeks</span>
+                <span class="news-outlet">Arkansas Democrat Gazette</span>
+                <span class="news-link-wrap">
+                  <span class="news-icon" title="Newspaper" aria-label="Newspaper"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="1.5"/><rect x="6" y="7" width="6" height="4"/><line x1="14" y1="7.5" x2="18" y2="7.5"/><line x1="14" y1="10.5" x2="18" y2="10.5"/><line x1="6" y1="14" x2="18" y2="14"/><line x1="6" y1="17" x2="14" y2="17"/></svg></span>
+                  <a href="https://www.arkansasonline.com/news/2025/may/smaller-districts-see-some-benefit-of-shorter-weeks/" class="pub-btn" target="_blank" rel="noopener">Link &rarr;</a>
+                </span>
+              </div>
+
+              <div class="news-row" data-year="2025" data-state="arkansas" data-mtype="radio interview">
+                <span class="news-date">Apr 2025</span>
+                <span class="news-title">A bill in the Arkansas Legislature threatens the future of four-day school weeks</span>
+                <span class="news-outlet">KUAF / Ozarks at Large</span>
+                <span class="news-link-wrap">
+                  <span class="news-icon" title="Radio" aria-label="Radio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.9 16.1A10 10 0 0 1 4.9 1.9"/><path d="M7.8 4.7a6 6 0 0 0 0 8.6"/><circle cx="12" cy="9" r="2"/><path d="M16.2 4.7a6 6 0 0 1 0 8.6"/><path d="M19.1 1.9a10 10 0 0 1 0 14.2"/><path d="m9 22 3-11 3 11"/><path d="M10 18h4"/></svg></span>
+                  <a href="https://www.kuaf.com/education/2025-04/bill-arkansas-legislature-threatens-future-four-day-school-weeks" class="pub-btn" target="_blank" rel="noopener">Link &rarr;</a>
+                </span>
+              </div>
+
+              <div class="news-row" data-year="2024" data-state="arkansas" data-mtype="online press-mention">
+                <span class="news-date">Jun 2024</span>
+                <span class="news-title">Education vendor Solution Tree abandons ship on hefty state contract</span>
+                <span class="news-outlet">Arkansas Times</span>
+                <span class="news-link-wrap">
+                  <span class="news-icon" title="Online article" aria-label="Online article"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a13.5 13.5 0 0 1 0 18"/><path d="M12 3a13.5 13.5 0 0 0 0 18"/></svg></span>
+                  <a href="https://arktimes.com/arkansas-blog/2024/06/education-vendor-solution-tree-abandons-ship-on-hefty-state-contract" class="pub-btn" target="_blank" rel="noopener">Link &rarr;</a>
+                </span>
+              </div>
+
+              <div class="news-row" data-year="2024" data-state="arkansas" data-mtype="newspaper press-mention">
+                <span class="news-date">Jun 2024</span>
+                <span class="news-title">Solution Tree CEO requests that Arkansas Department of Education withdraw proposed contract</span>
+                <span class="news-outlet">Arkansas Democrat Gazette</span>
+                <span class="news-link-wrap">
+                  <span class="news-icon" title="Newspaper" aria-label="Newspaper"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="1.5"/><rect x="6" y="7" width="6" height="4"/><line x1="14" y1="7.5" x2="18" y2="7.5"/><line x1="14" y1="10.5" x2="18" y2="10.5"/><line x1="6" y1="14" x2="18" y2="14"/><line x1="6" y1="17" x2="14" y2="17"/></svg></span>
+                  <a href="https://www.arkansasonline.com/news/2024/jun/solution-tree-ceo-requests-arkansas-department-education-withdraw-proposed-contract/" class="pub-btn" target="_blank" rel="noopener">Link &rarr;</a>
+                </span>
+              </div>
+
+              <div class="news-row" data-year="2024" data-state="arkansas" data-mtype="radio interview">
+                <span class="news-date">Jun 2024</span>
+                <span class="news-title">&ldquo;No statistically significant results&rdquo; from Solution Tree's program according to recent study</span>
+                <span class="news-outlet">KUAF / Ozarks at Large</span>
+                <span class="news-link-wrap">
+                  <span class="news-icon" title="Radio" aria-label="Radio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.9 16.1A10 10 0 0 1 4.9 1.9"/><path d="M7.8 4.7a6 6 0 0 0 0 8.6"/><circle cx="12" cy="9" r="2"/><path d="M16.2 4.7a6 6 0 0 1 0 8.6"/><path d="M19.1 1.9a10 10 0 0 1 0 14.2"/><path d="m9 22 3-11 3 11"/><path d="M10 18h4"/></svg></span>
+                  <a href="https://www.kuaf.com/education/2024-06/no-statistically-significant-results-solution-trees-program-according-recent-study" class="pub-btn" target="_blank" rel="noopener">Link &rarr;</a>
+                </span>
+              </div>
+
+              <div class="news-row" data-year="2024" data-state="arkansas" data-mtype="newspaper press-mention">
+                <span class="news-date">May 2024</span>
+                <span class="news-title">Report on 7-year Arkansas education contract finds no significant gains; state considering $99.4M renewal</span>
+                <span class="news-outlet">Arkansas Democrat Gazette</span>
+                <span class="news-link-wrap">
+                  <span class="news-icon" title="Newspaper" aria-label="Newspaper"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="1.5"/><rect x="6" y="7" width="6" height="4"/><line x1="14" y1="7.5" x2="18" y2="7.5"/><line x1="14" y1="10.5" x2="18" y2="10.5"/><line x1="6" y1="14" x2="18" y2="14"/><line x1="6" y1="17" x2="14" y2="17"/></svg></span>
+                  <a href="https://www.arkansasonline.com/news/2024/may/report-on-7-year-arkansas-education-contract-finds-no-significant-gains/" class="pub-btn" target="_blank" rel="noopener">Link &rarr;</a>
+                </span>
+              </div>
+
+              <div class="news-row" data-year="2023" data-state="arkansas" data-mtype="radio interview">
+                <span class="news-date">Nov 2023</span>
+                <span class="news-title">Lincoln Consolidated School District trims school week to benefit mental health</span>
+                <span class="news-outlet">KUAF / Ozarks at Large</span>
+                <span class="news-link-wrap">
+                  <span class="news-icon" title="Radio" aria-label="Radio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.9 16.1A10 10 0 0 1 4.9 1.9"/><path d="M7.8 4.7a6 6 0 0 0 0 8.6"/><circle cx="12" cy="9" r="2"/><path d="M16.2 4.7a6 6 0 0 1 0 8.6"/><path d="M19.1 1.9a10 10 0 0 1 0 14.2"/><path d="m9 22 3-11 3 11"/><path d="M10 18h4"/></svg></span>
+                  <a href="https://www.kuaf.com/education/2023-11/lincoln-consolidated-school-district-trims-school-week-benefit-mental-health" class="pub-btn" target="_blank" rel="noopener">Link &rarr;</a>
+                </span>
+              </div>
+
+              <div class="news-row" data-year="2023" data-state="arkansas" data-mtype="radio interview">
+                <span class="news-date">Mar 2023</span>
+                <span class="news-title">Why Schools Consider Four-Day Weeks</span>
+                <span class="news-outlet">KUAF / Ozarks at Large</span>
+                <span class="news-link-wrap">
+                  <span class="news-icon" title="Radio" aria-label="Radio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.9 16.1A10 10 0 0 1 4.9 1.9"/><path d="M7.8 4.7a6 6 0 0 0 0 8.6"/><circle cx="12" cy="9" r="2"/><path d="M16.2 4.7a6 6 0 0 1 0 8.6"/><path d="M19.1 1.9a10 10 0 0 1 0 14.2"/><path d="m9 22 3-11 3 11"/><path d="M10 18h4"/></svg></span>
+                  <a href="https://www.kuaf.com/education/2023-03/why-schools-consider-four-day-weeks" class="pub-btn" target="_blank" rel="noopener">Link &rarr;</a>
+                </span>
+              </div>
+
+            </div>
+            <button type="button" class="pub-expand-link" data-expand>View all 9 mentions</button>
+          </section>
+
+        </div><!-- /.research-content -->
+      </div><!-- /.research-layout -->
+
+    </div>
+  </main>
+
+  <script src="nav.js"></script>
+  <script>
+    (function(){
+      // --- Filter category toggles: clicking a toggle reveals its option row below,
+      //     one category at a time per section. ---
+      document.querySelectorAll('.pub-group-filters').forEach(bar => {
+        const toggles = Array.from(bar.querySelectorAll('.pub-filter-toggle'));
+        const groups = Array.from(bar.querySelectorAll('.pub-filter-group'));
+        toggles.forEach(toggle => {
+          toggle.addEventListener('click', () => {
+            const target = document.getElementById(toggle.dataset.target);
+            const willOpen = target && target.hidden;
+            // Collapse all in this bar
+            toggles.forEach(t => t.setAttribute('aria-expanded', 'false'));
+            groups.forEach(g => { g.hidden = true; });
+            if (willOpen) {
+              target.hidden = false;
+              toggle.setAttribute('aria-expanded', 'true');
+            }
+          });
+        });
+      });
+
+      // --- Per-section filtering ---
+      document.querySelectorAll('.pub-group[data-section]').forEach(section => {
+        const filters = {};
+        const itemSelector = section.id === 'media' ? '.news-row' : '.pub-item';
+
+        section.querySelectorAll('.pub-filter-group').forEach(group => {
+          const key = group.dataset.filterKey;
+          filters[key] = 'all';
+          const toggle = group.closest('.pub-group-filters').querySelector('.pub-filter-toggle[data-target="' + group.id + '"]');
+          // K-12 sub-pill container inside this group (if any)
+          const subWrap = group.querySelector('.pub-subfilters');
+
+          group.querySelectorAll('.pub-filter-pill').forEach(pill => {
+            pill.addEventListener('click', (e) => {
+              e.stopPropagation();
+              filters[key] = pill.dataset.filter;
+
+              // Mark active state on all pills in this group
+              group.querySelectorAll('.pub-filter-pill').forEach(p => {
+                const isActive = p === pill;
+                p.classList.toggle('active', isActive);
+                p.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+              });
+
+              // K-12 reveal: show sub-pills if this pill reveals them, else hide
+              if (subWrap) {
+                const reveals = pill.dataset.reveals;
+                const isSubPill = subWrap.contains(pill);
+                if (reveals === subWrap.dataset.group) {
+                  subWrap.hidden = false;
+                } else if (!isSubPill) {
+                  subWrap.hidden = true;
+                  // Clear any active sub-pill highlight
+                  subWrap.querySelectorAll('.pub-filter-pill.active').forEach(p => {
+                    p.classList.remove('active');
+                    p.setAttribute('aria-pressed', 'false');
+                  });
+                }
+              }
+
+              // Reflect "has-filter" highlight on the category toggle pill
+              if (toggle) {
+                toggle.classList.toggle('has-filter', filters[key] !== 'all');
+              }
+
+              applyFilters();
+            });
+          });
+        });
+
+        function applyFilters() {
+          let visible = 0;
+          section.querySelectorAll(itemSelector).forEach(item => {
+            let show = true;
+            for (const key in filters) {
+              if (filters[key] === 'all') continue;
+              const raw = item.dataset[key] || '';
+              const values = raw.split(/\s+/).filter(Boolean);
+              if (!values.includes(filters[key])) { show = false; break; }
+            }
+            item.style.display = show ? '' : 'none';
+            if (show) visible++;
+          });
+          const countEl = section.querySelector('.pub-group-count');
+          if (countEl) {
+            const allActive = Object.values(filters).every(v => v === 'all');
+            countEl.textContent = allActive ? '' : `${visible} shown`;
+          }
+        }
+      });
+
+      // --- "View all" full expand/collapse ---
+      document.querySelectorAll('[data-expand]').forEach(btn => {
+        const body = btn.parentElement.querySelector('.pub-group-body');
+        if (!body) return;
+        const baseLabel = btn.textContent;
+        btn.dataset.baseLabel = baseLabel;
+        btn.addEventListener('click', () => {
+          const expanded = body.classList.toggle('expanded');
+          // Reset any inline max-height we set for abstract sizing
+          body.style.maxHeight = '';
+          btn.textContent = expanded ? 'Show less' : baseLabel;
+        });
+      });
+
+      // --- Sections marked data-no-cap shouldn't be capped at all ---
+      document.querySelectorAll('.pub-group-body[data-no-cap]').forEach(body => {
+        body.style.maxHeight = 'none';
+        body.classList.add('expanded');
+      });
+
+      // --- Abstract expansion: grow body just enough to fit the open <details>,
+      //     then shrink back to the CSS cap when all are closed. ---
+      document.querySelectorAll('.pub-group-body').forEach(body => {
+        if (body.hasAttribute('data-no-cap')) return;
+        function recalc() {
+          if (body.classList.contains('expanded')) return; // user clicked "View all"
+          const openDetails = body.querySelectorAll('details[open]');
+          if (openDetails.length === 0) {
+            body.style.maxHeight = '';
+            return;
+          }
+          const bodyTop = body.getBoundingClientRect().top;
+          let maxBottom = 0;
+          openDetails.forEach(d => {
+            const r = d.getBoundingClientRect();
+            const relBottom = r.bottom - bodyTop;
+            if (relBottom > maxBottom) maxBottom = relBottom;
+          });
+          body.style.maxHeight = Math.ceil(maxBottom + 20) + 'px';
+        }
+        body.querySelectorAll('details').forEach(d => {
+          d.addEventListener('toggle', recalc);
+        });
+      });
+    })();
+  </script>
+</body>
+</html>
